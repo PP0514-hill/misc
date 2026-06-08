@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppSheet 是什麼？給完全沒寫過程式的你</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f0e6;--paper-2:#ece6d6;--ink:#1f1c17;--ink-soft:#4a443a;
+    --line:#bdb39a;--line-strong:#8c8068;--accent:#c1542b;--accent-2:#2d6a6a;
+    --gold:#b8893a;--shadow:rgba(31,28,23,.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Noto Sans TC",sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(193,84,43,.05), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(45,106,106,.05), transparent 40%),
+      var(--paper);
+    color:var(--ink);line-height:1.8;-webkit-font-smoothing:antialiased;position:relative;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(140,128,104,.07) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(140,128,104,.07) 1px,transparent 1px);
+    background-size:32px 32px;
+  }
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px}
+
+  header{padding:80px 0 44px;border-bottom:2px solid var(--ink)}
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:22px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .eyebrow::after{content:"";height:1px;flex:1;background:var(--line-strong)}
+  h1{
+    font-family:"Noto Serif TC",serif;font-weight:900;
+    font-size:clamp(2rem,5.2vw,3.6rem);line-height:1.15;letter-spacing:-.01em;margin-bottom:24px;
+  }
+  h1 .em{color:var(--accent);font-style:italic}
+  .lede{font-size:clamp(1rem,1.6vw,1.16rem);color:var(--ink-soft);max-width:700px}
+  .lede strong{color:var(--ink);font-weight:700}
+  .reassure{
+    margin-top:24px;padding:16px 20px;background:rgba(45,106,106,.07);
+    border-left:4px solid var(--accent-2);border-radius:0 6px 6px 0;
+    font-size:15px;color:var(--ink);max-width:700px;
+  }
+  .reassure b{color:var(--accent-2)}
+  .meta{
+    margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 28px;
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);
+  }
+  .meta b{color:var(--accent-2);font-weight:700}
+
+  .howto{
+    margin:40px 0 8px;padding:18px 22px;border:1px dashed var(--line-strong);
+    background:rgba(255,255,255,.35);border-radius:4px;
+    font-size:14.5px;color:var(--ink-soft);display:flex;gap:14px;align-items:flex-start;
+  }
+  .howto .tag{
+    font-family:"Noto Sans TC",sans-serif;font-weight:700;font-size:12px;
+    color:var(--accent);border:1px solid var(--accent);border-radius:3px;
+    padding:3px 10px;white-space:nowrap;margin-top:3px;
+  }
+
+  .section-title{
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:1.1rem;
+    color:var(--ink-soft);margin:64px 0 4px;
+  }
+  .section-title small{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.2em;color:var(--accent);display:block;margin-bottom:6px}
+  .blueprint{margin-top:28px;position:relative;display:flex;flex-direction:column-reverse;gap:14px}
+
+  .layer{
+    border:1.5px solid var(--ink);border-radius:6px;background:var(--paper-2);
+    overflow:hidden;transition:transform .25s,box-shadow .25s;box-shadow:4px 4px 0 var(--shadow);
+  }
+  .layer:hover{transform:translateX(-3px) translateY(-3px);box-shadow:8px 8px 0 var(--shadow)}
+  .layer.open{box-shadow:8px 8px 0 var(--shadow)}
+
+  .layer-head{
+    display:grid;grid-template-columns:64px 1fr auto;align-items:center;
+    gap:20px;padding:22px 24px;cursor:pointer;user-select:none;position:relative;
+  }
+  .lvl{
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;
+    width:54px;height:54px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;color:#fff;letter-spacing:.02em;flex-direction:column;line-height:1;
+  }
+  .lvl small{font-size:14px;font-weight:700;margin-top:2px}
+  .layer-titles{min-width:0}
+  .layer-titles h3{font-family:"Noto Serif TC",serif;font-weight:700;font-size:1.42rem;line-height:1.2}
+  .layer-titles .en{
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+    color:var(--ink-soft);text-transform:uppercase;margin-top:4px;opacity:.7;
+  }
+  .layer-titles .oneliner{font-size:14.5px;color:var(--ink-soft);margin-top:8px}
+  .chev{font-family:"JetBrains Mono",monospace;font-size:22px;color:var(--ink-soft);transition:transform .3s}
+  .layer.open .chev{transform:rotate(90deg);color:var(--accent)}
+
+  .layer-body{max-height:0;overflow:hidden;transition:max-height .5s ease}
+  .layer.open .layer-body{max-height:4600px;border-top:1px dashed var(--line-strong)}
+  .body-inner{padding:8px 24px 28px}
+
+  .block{margin-top:24px}
+  .block-label{
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:1rem;
+    color:var(--accent-2);margin-bottom:12px;display:flex;align-items:center;gap:10px;
+  }
+  .block-label::before{content:"";width:18px;height:3px;background:var(--accent-2);border-radius:2px}
+  .block p{font-size:15px;color:var(--ink-soft)}
+  .analogy{
+    background:rgba(184,137,58,.1);border:1px solid var(--gold);border-radius:6px;
+    padding:12px 16px;font-size:14.5px;color:var(--ink);margin-top:10px;
+  }
+  .analogy b{color:var(--gold)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    font-family:"Noto Sans TC",sans-serif;font-weight:500;font-size:13.5px;
+    background:var(--paper);border:1px solid var(--line-strong);border-radius:4px;
+    padding:7px 12px 7px 28px;color:var(--ink);cursor:pointer;position:relative;transition:all .18s;
+  }
+  .chip::before{
+    content:"+";position:absolute;left:10px;top:50%;transform:translateY(-50%);
+    font-weight:700;color:var(--accent);transition:transform .2s;
+  }
+  .chip:hover{border-color:var(--accent);background:#fff;transform:translateY(-1px)}
+  .chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .chip.active::before{content:"−";color:var(--gold)}
+  .chip .en{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-soft);opacity:.6;margin-left:4px}
+  .chip.active .en{color:var(--paper);opacity:.5}
+
+  .ex-panel{
+    margin-top:12px;display:none;border:1.5px solid var(--ink);border-radius:6px;
+    background:#fff;overflow:hidden;box-shadow:3px 3px 0 var(--shadow);
+  }
+  .ex-panel.show{display:block;animation:slidein .3s ease}
+  @keyframes slidein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .ex-head{
+    background:var(--ink);color:var(--paper);padding:11px 16px;
+    font-family:"Noto Serif TC",serif;font-weight:700;font-size:15px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .ex-head .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);flex-shrink:0}
+  .ex-head .en{font-family:"JetBrains Mono",monospace;font-size:11px;opacity:.55;font-weight:400;margin-left:auto}
+  .ex-body{padding:16px 18px}
+  .ex-row{margin-bottom:14px}
+  .ex-row:last-child{margin-bottom:0}
+  .ex-k{
+    font-family:"Noto Sans TC",sans-serif;font-weight:700;font-size:12.5px;
+    color:var(--accent-2);margin-bottom:5px;
+  }
+  .ex-v{font-size:14.5px;color:var(--ink-soft)}
+  .ex-v b{color:var(--ink)}
+  .code{
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;background:#23201a;
+    color:#f0e9d8;padding:11px 44px 11px 14px;border-radius:5px;position:relative;
+    white-space:pre-wrap;word-break:break-word;line-height:1.6;
+  }
+  .code .cmt{color:#b8a98a}
+  .code .fn{color:#e8a35c}
+  .code .str{color:#9bc08a}
+  .copy{
+    position:absolute;top:7px;right:7px;font-family:"Noto Sans TC",sans-serif;font-weight:500;
+    font-size:11px;background:rgba(255,255,255,.1);color:#f0e9d8;
+    border:1px solid rgba(255,255,255,.25);border-radius:3px;padding:3px 9px;cursor:pointer;transition:all .15s;
+  }
+  .copy:hover{background:var(--accent);border-color:var(--accent)}
+  .copy.done{background:var(--accent-2);border-color:var(--accent-2)}
+  .path{
+    font-family:"Noto Sans TC",sans-serif;font-size:13.5px;color:var(--ink);
+    background:var(--paper-2);border:1px dashed var(--line-strong);border-radius:5px;
+    padding:11px 14px;line-height:1.9;
+  }
+  .path .seg{font-family:"JetBrains Mono",monospace;font-size:12px;color:#fff;background:var(--accent);padding:1px 7px;border-radius:3px}
+  .ex-note{font-size:13px;color:var(--ink-soft);margin-top:8px;padding-left:14px;border-left:2px solid var(--gold)}
+  .ex-note b{color:var(--accent)}
+
+  .pitfall{
+    background:rgba(193,84,43,.07);border-left:3px solid var(--accent);
+    padding:12px 16px;border-radius:0 4px 4px 0;font-size:14.5px;color:var(--ink);margin-top:6px;
+  }
+  .pitfall b{color:var(--accent)}
+  code.inline{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:var(--ink);color:var(--paper);padding:2px 6px;border-radius:3px}
+
+  .mcp{
+    background:linear-gradient(180deg,rgba(45,106,106,.09),rgba(45,106,106,.03));
+    border:1px solid var(--accent-2);border-radius:6px;padding:18px 20px;margin-top:24px;
+  }
+  .mcp .block-label{color:var(--accent-2)}
+  .mcp .block-label::before{background:var(--accent-2)}
+  .mcp p{font-size:14.5px;color:var(--ink-soft);margin-bottom:6px}
+  .mcp p b{color:var(--ink)}
+
+  .spine{
+    margin-top:18px;padding:16px 20px;border:1.5px solid var(--accent-2);
+    border-radius:6px;background:rgba(45,106,106,.05);
+    font-size:14.5px;color:var(--ink-soft);display:flex;gap:14px;align-items:flex-start;
+  }
+  .spine .tag{
+    font-family:"Noto Sans TC",sans-serif;font-weight:700;font-size:12px;
+    background:var(--accent-2);color:#fff;border-radius:3px;padding:5px 11px;white-space:nowrap;margin-top:2px;
+  }
+  .spine b{color:var(--ink)}
+
+  .mcp-section{margin:80px 0 40px;padding:42px 0;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+  .mcp-section h2{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(1.6rem,3.4vw,2.3rem);margin-bottom:10px}
+  .mcp-section h2 .em{color:var(--accent-2)}
+  .mcp-section .sub{color:var(--ink-soft);max-width:720px;margin-bottom:18px;font-size:15px}
+  .mcp-analogy{
+    background:rgba(184,137,58,.12);border:1px solid var(--gold);border-radius:6px;
+    padding:16px 20px;margin-bottom:30px;font-size:15px;color:var(--ink);max-width:760px;
+  }
+  .mcp-analogy b{color:var(--gold)}
+  .pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:30px}
+  .node{border:1.5px solid var(--ink);background:var(--paper-2);border-radius:6px;padding:16px;box-shadow:3px 3px 0 var(--shadow)}
+  .node .n{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--accent);letter-spacing:.1em}
+  .node h4{font-family:"Noto Serif TC",serif;font-size:1.05rem;margin:6px 0 6px}
+  .node p{font-size:13px;color:var(--ink-soft)}
+
+  .truth{background:rgba(184,137,58,.1);border:1px solid var(--gold);border-radius:6px;padding:18px 22px;margin-top:8px}
+  .truth h4{font-family:"Noto Serif TC",serif;color:var(--gold);font-size:1.15rem;margin-bottom:10px}
+  .truth ul{list-style:none;font-size:14.5px;color:var(--ink-soft)}
+  .truth li{padding:8px 0 8px 24px;position:relative;border-bottom:1px dashed var(--line)}
+  .truth li:last-child{border-bottom:0}
+  .truth li::before{content:"▸";position:absolute;left:4px;color:var(--gold)}
+  .truth li b{color:var(--ink)}
+
+  .roadmap{margin-top:30px}
+  .roadmap .step{display:grid;grid-template-columns:auto 1fr;gap:18px;padding:14px 0;border-bottom:1px dashed var(--line);align-items:baseline}
+  .roadmap .step:last-child{border-bottom:0}
+  .roadmap .num{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--accent);font-size:13px;border:1.5px solid var(--accent);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+  .roadmap .step h4{font-family:"Noto Serif TC",serif;font-size:1.1rem;margin-bottom:3px}
+  .roadmap .step p{font-size:14px;color:var(--ink-soft)}
+
+  footer{padding:50px 0 80px;text-align:center;color:var(--ink-soft);font-size:13.5px}
+  footer .big{font-family:"Noto Serif TC",serif;font-size:1.1rem;color:var(--ink);margin-bottom:8px}
+
+  @media(max-width:640px){
+    .layer-head{grid-template-columns:48px 1fr auto;gap:14px;padding:18px 16px}
+    .lvl{width:44px;height:44px;font-size:11px}
+    .layer-titles h3{font-size:1.2rem}
+    .body-inner{padding:8px 16px 24px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">AppSheet 入門 ／ 寫給事務所行政的你</div>
+    <h1>用 AppSheet 做出<br>自己的<span class="em">小工具</span>，<br>不用會寫程式</h1>
+    <p class="lede">AppSheet 是 Google 出的工具，可以把一份<strong>試算表</strong>，變成手機上能用的<strong>小軟體</strong>（像表單、清單、簽核那種）。這份說明把它拆成<strong>五個由下往上的階段</strong>——就像蓋房子，先打地基、再砌牆、最後裝潢上鎖。</p>
+    <div class="reassure">
+      <b>先說在前面：</b>你不需要會寫程式。看不懂的英文字都會放在小字、講解時一律用白話。看完你會知道「這東西在做什麼、卡住時問題出在哪」，剩下複雜的部分，可以交給 AI 幫忙。
+    </div>
+    <div class="meta">
+      <span>怎麼讀：<b>從最下面那層往上看</b></span>
+      <span>怎麼用：<b>點一層 → 再點裡面的小標籤看例子</b></span>
+    </div>
+  </header>
+
+  <div class="howto">
+    <span class="tag">操作說明</span>
+    <span>① 點任何一層，會往下展開。② 在「裡面有哪些東西」那區，點任一個有 <b>+</b> 的標籤，會跳出一張小卡片，告訴你：這是什麼、舉個例子、實際在哪裡點/要填什麼。灰底程式碼的右上角有「複製」可以直接拿去用。</span>
+  </div>
+
+  <div class="section-title"><small>// 由下往上的五個階段</small>AppSheet 的五層，像蓋一棟房子</div>
+
+  <div class="blueprint" id="blueprint">
+
+    <!-- L1 資料層 -->
+    <div class="layer">
+      <div class="layer-head">
+        <div class="lvl" style="background:#2d6a6a">第<small>1</small></div>
+        <div class="layer-titles">
+          <h3>第一層：你的資料（地基）</h3>
+          <div class="en">DATA</div>
+          <div class="oneliner">一切的根基。AppSheet 自己不存資料，它只是幫你的試算表「裝上一個好用的介面」。</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="layer-body"><div class="body-inner">
+        <div class="block">
+          <div class="block-label">這層在做什麼</div>
+          <p>你的資料其實一直放在 Google 試算表裡，AppSheet 只是讀它、然後變成漂亮的畫面。所以你在試算表改了欄位，記得回 AppSheet 按一下「重新讀取」，它才會知道。</p>
+          <div class="analogy"><b>用生活比喻：</b>試算表＝一個檔案櫃，每個抽屜（分頁）放一種資料。AppSheet＝你貼在櫃子外面、方便大家拿取的那張「使用說明＋取件窗口」。</div>
+        </div>
+        <div class="block">
+          <div class="block-label">裡面有哪些東西（點開看例子）</div>
+          <div class="chips">
+            <span class="chip" data-ex="l1-table">一張資料表 <span class="en">Table</span></span>
+            <span class="chip" data-ex="l1-type">欄位的種類 <span class="en">Type</span></span>
+            <span class="chip" data-ex="l1-key">每筆的編號 <span class="en">Key</span></span>
+            <span class="chip" data-ex="l1-ref">表跟表的連結 <span class="en">Ref</span></span>
+          </div>
+
+          <div class="ex-panel" id="l1-table">
+            <div class="ex-head"><span class="dot"></span>一張資料表<span class="en">Table</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">就是試算表的一個分頁。一橫排是一筆資料，一直行是一個欄位。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v"><b>專案表</b>：每一排是一個案子（案名、業主、進度、金額）。<b>請款表</b>：每一排是一筆請款。</div></div>
+              <div class="ex-row"><div class="ex-k">小建議</div>
+                <div class="path">一個主題開一張表就好，別把所有東西塞進同一張——以後會很難整理。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l1-type">
+            <div class="ex-head"><span class="dot"></span>欄位的種類<span class="en">Column Type</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">告訴系統「這格要填的是哪一種東西」，它就會給對應的輸入方式。</div></div>
+              <div class="ex-row"><div class="ex-k">常用的幾種</div><div class="ex-v">文字、數字、日期、<b>下拉選單</b>（從幾個固定選項挑）、<b>照片</b>、<b>地點</b>。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">「案件進度」設成下拉選單（規劃／設計／施工／結案）→ 大家就只能用選的，不會有人打錯字、各寫各的。</div></div>
+              <div class="ex-row"><div class="ex-k">在哪裡設</div>
+                <div class="path">左邊選 <span class="seg">Data 資料</span> → 點那張表 → 找到那一欄 → 改它的「種類」</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l1-key">
+            <div class="ex-head"><span class="dot"></span>每筆的編號<span class="en">Key 主鍵</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">每一筆資料要有一個「不會重複的身分證號」，系統靠它認得是哪一筆。</div></div>
+              <div class="ex-row"><div class="ex-k">為什麼重要</div><div class="ex-v">別拿「案名」當編號（會改名、會重複，一改就亂掉）。最好讓系統自動發一組看不見的流水號。</div></div>
+              <div class="ex-row"><div class="ex-k">怎麼讓它自動發號（複製貼上就好）</div>
+                <div class="code"><span class="fn">UNIQUEID</span>()<span class="copy">複製</span></div>
+                <div class="ex-note">把這串貼到那欄的「預設值」欄位，系統就會自動產生編號。<b>不用懂它怎麼運作</b>，照貼即可。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l1-ref">
+            <div class="ex-head"><span class="dot"></span>表跟表的連結<span class="en">Ref</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">把兩張表「掛勾」在一起。掛好後，系統會自動幫你做選單跟對應清單。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">請款表裡有一欄「屬於哪個案子」，掛到專案表。之後打開某個案子，下面就自動列出它所有的請款，不用自己找。</div></div>
+              <div class="ex-row"><div class="ex-k">在哪裡設</div>
+                <div class="path">把「屬於哪個案子」這欄的種類，改成 <span class="seg">Ref 連結</span>，再選要連到「專案表」</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-label">新手最容易卡的地方</div>
+          <div class="pitfall">忘了設「編號」，或拿會變的東西（人名、案名）當編號。記得：<b>用系統自動發的流水號</b>當身分證最安全。</div>
+        </div>
+
+        <div class="mcp">
+          <div class="block-label">這層之後可以怎麼「請 AI 幫忙」</div>
+          <p>這層的資料，是 AI 最容易幫上忙的地方。串好之後，你可以用講的請 AI <b>幫你查、幫你填、幫你整理</b>資料，不用一筆一筆手動敲。（背後的技術名稱叫 API，你不用記。）</p>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- L2 邏輯層 -->
+    <div class="layer">
+      <div class="layer-head">
+        <div class="lvl" style="background:#3a7d5a">第<small>2</small></div>
+        <div class="layer-titles">
+          <h3>第二層：自動算、自動篩（水電管線）</h3>
+          <div class="en">LOGIC</div>
+          <div class="oneliner">讓資料會自己動。例如自動算金額、自動帶今天日期、自動只給某人看到他的案子。</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="layer-body"><div class="body-inner">
+        <div class="block">
+          <div class="block-label">這層在做什麼</div>
+          <p>這層就是「自動幫你做計算跟篩選」。寫法很像 Excel 的公式——如果你會在 Excel 打 <code class="inline">=A1*1.05</code>，這層就難不倒你。複雜的公式都可以請 AI 直接幫你寫好，你貼上就行。</p>
+          <div class="analogy"><b>用生活比喻：</b>就像在表格裡設好公式，金額會自己加總；這層讓你的小工具也有同樣的「自動算」能力。</div>
+        </div>
+        <div class="block">
+          <div class="block-label">裡面有哪些東西（點開看例子）</div>
+          <div class="chips">
+            <span class="chip" data-ex="l2-af">自動算的欄位 <span class="en">App Formula</span></span>
+            <span class="chip" data-ex="l2-iv">預設帶入的值 <span class="en">Initial Value</span></span>
+            <span class="chip" data-ex="l2-slice">篩選出一群 <span class="en">Slice</span></span>
+            <span class="chip" data-ex="l2-valid">擋住亂填 <span class="en">Valid_If</span></span>
+          </div>
+
+          <div class="ex-panel" id="l2-af">
+            <div class="ex-head"><span class="dot"></span>自動算的欄位<span class="en">App Formula</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">設定後，這格「永遠由公式自動算」，人改不動，確保不會算錯。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">「含稅金額」＝未稅 × 1.05，永遠自動算，沒人能手動改。</div></div>
+              <div class="ex-row"><div class="ex-k">公式長這樣（複製貼上）</div>
+                <div class="code">[未稅金額] * <span class="str">1.05</span><span class="copy">複製</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l2-iv">
+            <div class="ex-head"><span class="dot"></span>預設帶入的值<span class="en">Initial Value</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">只是「先幫你填好預設」，你之後還是可以改。跟上面那個「改不動」不一樣。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">新增一筆時，「日期」自動帶今天、「填表人」自動帶現在登入的這個人。</div></div>
+              <div class="ex-row"><div class="ex-k">公式長這樣（複製貼上）</div>
+                <div class="code"><span class="cmt"># 日期欄，自動帶今天</span>
+<span class="fn">TODAY</span>()
+
+<span class="cmt"># 填表人欄，自動帶登入者</span>
+<span class="fn">USEREMAIL</span>()<span class="copy">複製</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l2-slice">
+            <div class="ex-head"><span class="dot"></span>篩選出一群<span class="en">Slice 切片</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">把一張大表「篩出一小群」，存成一個固定的篩選。像 Excel 的篩選，但可以存起來重複用。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">做一個「我負責的案子」，畫面就只顯示登入者自己的案，不會看到一大堆別人的。</div></div>
+              <div class="ex-row"><div class="ex-k">篩選條件這樣寫（複製貼上）</div>
+                <div class="code">[負責人] = <span class="fn">USEREMAIL</span>()<span class="copy">複製</span></div>
+                <div class="ex-note">意思是：只留下「負責人＝現在登入這個人」的資料。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l2-valid">
+            <div class="ex-head"><span class="dot"></span>擋住亂填<span class="en">Valid_If</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">設一個規則，填得不對就送不出去，並跳提示。減少資料出錯。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">「金額」一定要大於 0，否則表單不讓送出。</div></div>
+              <div class="ex-row"><div class="ex-k">規則這樣寫（複製貼上）</div>
+                <div class="code">[金額] &gt; <span class="str">0</span><span class="copy">複製</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-label">新手最容易卡的地方</div>
+          <div class="pitfall">搞混「自動算（改不動）」跟「預設值（可以改）」。簡單記：要鎖死的用前者，只是想幫忙先填的用後者。</div>
+        </div>
+
+        <div class="mcp">
+          <div class="block-label">這層之後可以怎麼「請 AI 幫忙」</div>
+          <p>這層的公式，AI <b>最會幫你寫</b>。你只要用講的：「我想要含稅自動算」「我只想看到自己的案子」，請 AI 給你公式，你再貼進去就好。<b>不用自己背任何函數。</b></p>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- L3 呈現層 -->
+    <div class="layer">
+      <div class="layer-head">
+        <div class="lvl" style="background:#b8893a">第<small>3</small></div>
+        <div class="layer-titles">
+          <h3>第三層：畫面長什麼樣（裝潢）</h3>
+          <div class="en">VIEWS</div>
+          <div class="oneliner">使用者打開 App 看到的畫面。同一份資料，可以做成清單、表單、地圖等不同樣子。</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="layer-body"><div class="body-inner">
+        <div class="block">
+          <div class="block-label">這層在做什麼</div>
+          <p>決定大家「看到的畫面」。同一份資料可以擺成不同樣子，挑最順手的給同事用。</p>
+          <div class="analogy"><b>用生活比喻：</b>同一批照片，你可以做成相簿、做成清單、貼在地圖上——資料沒變，只是「呈現方式」換了。</div>
+        </div>
+        <div class="block">
+          <div class="block-label">裡面有哪些東西（點開看例子）</div>
+          <div class="chips">
+            <span class="chip" data-ex="l3-table">清單畫面 <span class="en">Table / Deck</span></span>
+            <span class="chip" data-ex="l3-form">填寫表單 <span class="en">Form</span></span>
+            <span class="chip" data-ex="l3-detail">單筆詳情 <span class="en">Detail</span></span>
+            <span class="chip" data-ex="l3-dash">總覽看板 <span class="en">Dashboard</span></span>
+          </div>
+
+          <div class="ex-panel" id="l3-table">
+            <div class="ex-head"><span class="dot"></span>清單畫面<span class="en">Table / Deck</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">把很多筆資料排成一張清單。可以是純文字表格，也可以是有縮圖的卡片。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">「進行中的案子」做成卡片清單，每張卡顯示案名＋業主＋照片。</div></div>
+              <div class="ex-row"><div class="ex-k">在哪裡做</div><div class="path">左邊 <span class="seg">Views 畫面</span> → 新增一個 → 選資料來源 → 挑樣式</div></div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l3-form">
+            <div class="ex-head"><span class="dot"></span>填寫表單<span class="en">Form</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">給大家填資料的畫面。它不是另一份資料，只是「寫進某張表」的入口。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">同事用手機填「報修單」：選地點、拍照、寫狀況、送出。</div></div>
+              <div class="ex-row"><div class="ex-k">小技巧</div><div class="path">可以設「某欄選了某選項，才跳出另一欄」——例如選了「不合格」才要填「原因」</div></div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l3-detail">
+            <div class="ex-head"><span class="dot"></span>單筆詳情<span class="en">Detail</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">點清單裡某一筆後，看到那一筆的完整內容。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">點某個案子，看到它全部欄位，下面還自動列出它的所有請款紀錄。</div></div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l3-dash">
+            <div class="ex-head"><span class="dot"></span>總覽看板<span class="en">Dashboard</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">把好幾個畫面併在同一頁，一眼看全局。適合用電腦看。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">左邊案子清單、右邊該案詳情，點左邊右邊就跟著換，掌控全部進度。</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-label">新手最容易卡的地方</div>
+          <div class="pitfall">想只顯示「篩過的資料」，卻直接放整張表。記得先在第二層做好「篩選（Slice）」，再把畫面接上去。</div>
+        </div>
+
+        <div class="mcp">
+          <div class="block-label">這層之後可以怎麼「請 AI 幫忙」</div>
+          <p>畫面的排版要在編輯器自己點，但你可以請 AI 當<b>設計顧問</b>：「我有這些資料，該做哪幾個畫面比較好用？」它會給你一份照著做的清單。</p>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- L4 行為層 -->
+    <div class="layer">
+      <div class="layer-head">
+        <div class="lvl" style="background:#c1542b">第<small>4</small></div>
+        <div class="layer-titles">
+          <h3>第四層：按鈕跟自動通知（電器開關）</h3>
+          <div class="en">ACTIONS</div>
+          <div class="oneliner">讓 App 會「做事」。例如一顆按鈕標記完成；或資料一變，就自動寄信通知。</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="layer-body"><div class="body-inner">
+        <div class="block">
+          <div class="block-label">這層在做什麼</div>
+          <p>分兩種：一種是<b>「要人按」的按鈕</b>；一種是<b>「自動發生」的通知</b>（沒人按，條件到了它自己跑）。</p>
+          <div class="analogy"><b>用生活比喻：</b>按鈕＝電燈開關（你按它才亮）；自動通知＝感應燈（有人經過就自動亮）。</div>
+        </div>
+        <div class="block">
+          <div class="block-label">裡面有哪些東西（點開看例子）</div>
+          <div class="chips">
+            <span class="chip" data-ex="l4-action">要人按的按鈕 <span class="en">Action</span></span>
+            <span class="chip" data-ex="l4-bot">自動通知 <span class="en">Bot / Automation</span></span>
+            <span class="chip" data-ex="l4-webhook">接到別的系統 <span class="en">Webhook</span></span>
+          </div>
+
+          <div class="ex-panel" id="l4-action">
+            <div class="ex-head"><span class="dot"></span>要人按的按鈕<span class="en">Action</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">使用者按一下就做一件事：改狀態、跳到別頁、打電話、開連結。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">案子上一顆「結案」按鈕，按下去把狀態改成「結案」、並記下時間。</div></div>
+              <div class="ex-row"><div class="ex-k">背後設的值（複製貼上）</div>
+                <div class="code"><span class="cmt"># 狀態欄改成</span>
+<span class="str">"結案"</span>
+<span class="cmt"># 結案時間欄填現在</span>
+<span class="fn">NOW</span>()<span class="copy">複製</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l4-bot">
+            <div class="ex-head"><span class="dot"></span>自動通知<span class="en">Bot / Automation</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">沒人按、條件到了自己跑。一個自動通知＝「什麼時候發生」＋「要做什麼」。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">當一筆請款被標成「待簽核」→ 自動寄 Email 通知主管。或每週一早上 8 點，自動寄出本週待辦。</div></div>
+              <div class="ex-row"><div class="ex-k">在哪裡做</div><div class="path">左邊 <span class="seg">Automation 自動化</span> → 新增 → 設「何時觸發」→ 設「要做什麼（寄信）」</div></div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l4-webhook">
+            <div class="ex-head"><span class="dot"></span>接到別的系統<span class="en">Webhook</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">自動通知的進階版：資料一變，就把它「丟給」另一套系統處理。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">填好一筆紀錄，就自動同步存進事務所的 NAS、或寫進 Notion。</div></div>
+              <div class="ex-row"><div class="ex-k">這代表什麼</div><div class="ex-note"><b>這就是把 AppSheet 接進事務所其他工具的關鍵接點。</b>設定通常會請懂的人或 AI 幫忙，你知道「有這個能力」就夠了。</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-label">新手最容易卡的地方</div>
+          <div class="pitfall">分不清「按鈕（要人按）」跟「自動通知（自己跑）」。還有：自動通知的條件沒設好，會狂寄信轟炸大家。</div>
+        </div>
+
+        <div class="mcp">
+          <div class="block-label">這層之後可以怎麼「請 AI 幫忙」</div>
+          <p>這層可以雙向：AI 能<b>幫你觸發 App 裡的動作</b>；App 也能在事情發生時<b>自動通知 AI 或其他系統</b>接手。這是把整個事務所流程串起來、減少手動轉貼的關鍵。</p>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- L5 治理層 -->
+    <div class="layer">
+      <div class="layer-head">
+        <div class="lvl" style="background:#7a4b8c">第<small>5</small></div>
+        <div class="layer-titles">
+          <h3>第五層：權限跟上線（門鎖與鑰匙）</h3>
+          <div class="en">SECURITY</div>
+          <div class="oneliner">誰能看到什麼、誰能改什麼，以及怎麼正式發給大家用。</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="layer-body"><div class="body-inner">
+        <div class="block">
+          <div class="block-label">這層在做什麼</div>
+          <p>做好不等於能用。這層決定權限（誰看得到哪些資料）跟「正式上線」。沒設好就分享出去，等於資料對所有人全開。</p>
+          <div class="analogy"><b>用生活比喻：</b>就像辦公室的門禁卡——每個人刷卡只能進自己該進的區域，不是一張卡開全棟。</div>
+        </div>
+        <div class="block">
+          <div class="block-label">裡面有哪些東西（點開看例子）</div>
+          <div class="chips">
+            <span class="chip" data-ex="l5-sf">誰能看哪些 <span class="en">Security Filter</span></span>
+            <span class="chip" data-ex="l5-deploy">正式上線 <span class="en">Deploy</span></span>
+            <span class="chip" data-ex="l5-api">給 AI 的鑰匙 <span class="en">API Key</span></span>
+          </div>
+
+          <div class="ex-panel" id="l5-sf">
+            <div class="ex-head"><span class="dot"></span>誰能看哪些<span class="en">Security Filter</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">用一條規則，決定「每個人只能看到他該看的那幾筆」。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">設計師只看到自己負責的案；行政可以看全部。</div></div>
+              <div class="ex-row"><div class="ex-k">規則這樣寫（複製貼上）</div>
+                <div class="code"><span class="cmt"># 只給看「負責人是自己」的資料</span>
+[負責人] = <span class="fn">USEREMAIL</span>()<span class="copy">複製</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l5-deploy">
+            <div class="ex-head"><span class="dot"></span>正式上線<span class="en">Deploy</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">把 App 從「還在試做」正式發布成「大家能用」。系統會先幫你檢查有沒有問題。</div></div>
+              <div class="ex-row"><div class="ex-k">舉個例子</div><div class="ex-v">內部測過沒問題，正式發給全事務所同事用。</div></div>
+              <div class="ex-row"><div class="ex-k">在哪裡做</div><div class="path">左邊 <span class="seg">Manage 管理</span> → <span class="seg">Deploy 部署</span> → 照它列的清單修一修 → 正式上線</div></div>
+            </div>
+          </div>
+
+          <div class="ex-panel" id="l5-api">
+            <div class="ex-head"><span class="dot"></span>給 AI 的鑰匙<span class="en">API Key</span></div>
+            <div class="ex-body">
+              <div class="ex-row"><div class="ex-k">白話講</div><div class="ex-v">想讓 AI 或別的程式連進這個 App，要先在這裡「打開門、拿一把鑰匙」給它。</div></div>
+              <div class="ex-row"><div class="ex-k">在哪裡拿</div><div class="path">左邊 <span class="seg">Settings 設定</span> → <span class="seg">Integrations 整合</span> → 開啟 API → 複製那兩串代碼</div></div>
+              <div class="ex-row"><div class="ex-k">重要提醒</div><div class="ex-note"><b>這把鑰匙＝資料的存取權，跟銀行密碼一樣。</b>不要貼到群組、不要外流。交給協助你的人時，請對方妥善保管。</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block-label">新手最容易卡的地方</div>
+          <div class="pitfall">以為「沒給連結別人就看不到」。其實要靠上面的「誰能看哪些」規則才擋得住。還在「試做」狀態就分享，會有人數限制。</div>
+        </div>
+
+        <div class="mcp">
+          <div class="block-label">這層之後可以怎麼「請 AI 幫忙」</div>
+          <p>這層提供 AI 連進來的<b>那把鑰匙</b>。拿到鑰匙後，前面四層講的「請 AI 幫查、幫填、幫通知」才能真的運作。</p>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="spine">
+    <span class="tag">一句話總結</span>
+    <span><b>這五層就像蓋房子：</b>先有資料（地基）、再讓它會自動算（管線）、做出好看的畫面（裝潢）、加上按鈕跟通知（開關）、最後鎖好門再交鑰匙（門禁）。每一層都可以請 AI 幫忙，你負責想清楚要什麼就好。</span>
+  </div>
+
+  <div class="mcp-section">
+    <h2>那「<span class="em">請 AI 幫忙</span>」到底是什麼意思？</h2>
+    <p class="sub">你可能聽過 <b>MCP</b> 這個詞。它聽起來很可怕，但其實意思很單純：</p>
+    <div class="mcp-analogy">
+      <b>MCP 就是一座「橋」</b>——讓 AI（像 Claude）能跟你的 AppSheet 對話。有了這座橋，你就能用<b>講的</b>請 AI 幫你查資料、填資料、跑通知，不用自己一筆筆操作。<br><br>
+      <b>你不需要自己蓋這座橋。</b>蓋橋是技術人員（或 AI 自己）的工作。你的角色是：<b>把這五層的概念搞懂，知道自己想要什麼，剩下的交給 AI。</b>
+    </div>
+
+    <div class="truth">
+      <h4>幫你先把「能」跟「不能」講清楚，免得期待落空</h4>
+      <ul>
+        <li><b>AI 能幫你做的：</b>查資料、填資料、批次新增、按下按鈕觸發動作、自動發通知。這些都能自動化。</li>
+        <li><b>AI 目前還不能直接做的：</b>幫你「畫畫面、寫公式、改整個結構」——這些還是要在編輯器手動點。但 AI 可以<b>告訴你怎麼點、把公式寫好給你貼</b>。</li>
+        <li><b>所以最務實的分工：</b>你（或請技術同事）把<b>骨架</b>在編輯器搭好；之後的日常<b>跑資料、跑通知</b>交給 AI。</li>
+      </ul>
+    </div>
+
+    <div class="roadmap">
+      <div class="step"><div class="num">1</div><div><h4>先把這五層看懂</h4><p>知道每層在做什麼、卡住時問題在哪。看完這頁你已經做到了。</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>搭一個最小的骨架</h4><p>用一張表（例如報修單），做出表單＋清單。卡住就請 AI 給步驟。</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>讓 AI 幫你寫公式</h4><p>用講的描述需求，請 AI 給公式，你貼進去。不用背任何函數。</p></div></div>
+      <div class="step"><div class="num">4</div><div><h4>需要自動化時，找人接「橋」</h4><p>要 AI 自動跑資料時，請技術同事幫你拿鑰匙、接好那座橋。</p></div></div>
+      <div class="step"><div class="num">5</div><div><h4>上線前鎖好權限</h4><p>回第五層設好「誰能看哪些」，鑰匙妥善保管，再正式發給大家。</p></div></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="big">看到這裡，你已經比 90% 的人更懂 AppSheet 了。</div>
+    <div>由下往上的五層 · 點每一層裡的標籤看實際例子 · 不會程式也沒關係</div>
+  </footer>
+
+</div>
+
+<script>
+  document.querySelectorAll('.layer-head').forEach(head=>{
+    head.addEventListener('click',()=>head.parentElement.classList.toggle('open'));
+  });
+  document.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click',e=>{
+      e.stopPropagation();
+      const id=chip.dataset.ex;
+      const panel=document.getElementById(id);
+      const chipsBox=chip.closest('.chips');
+      const wasActive=chip.classList.contains('active');
+      chipsBox.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      chip.closest('.block').querySelectorAll('.ex-panel').forEach(p=>p.classList.remove('show'));
+      if(!wasActive){chip.classList.add('active');panel.classList.add('show');}
+    });
+  });
+  document.querySelectorAll('.copy').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const codeEl=btn.parentElement.cloneNode(true);
+      codeEl.querySelector('.copy')?.remove();
+      const text=codeEl.innerText.trim();
+      navigator.clipboard.writeText(text).then(()=>{
+        const old=btn.textContent;btn.textContent='已複製';btn.classList.add('done');
+        setTimeout(()=>{btn.textContent=old;btn.classList.remove('done');},1400);
+      });
+    });
+  });
+</script>
+</body>
+</html>
